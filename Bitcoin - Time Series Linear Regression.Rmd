@@ -1,0 +1,104 @@
+---
+title: "Bitcoin: Time Series Linear Regression"
+author: "Ian MacKay"
+date: '2018-04-06'
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(jsonlite)
+library(plotly)
+
+# Returns OHLC + Volume
+POLO_URL <- "https://poloniex.com/public?command=returnChartData&currencyPair=%s&start=%d&end=%d&period=%i"
+# Returns tick by tick trades (max 50000)
+# POLO_URL2 <- "https://poloniex.com/public?command=returnTradeHistory&currencyPair=%s&start=%d&end=%d"
+
+PAIR <- "USDT_BTC"
+START <- as.numeric(as.POSIXct("2013-01-01"), tz="GMT")
+END <- as.numeric(as.POSIXct("2018-01-01"), tz="GMT")
+PRED_START <- as.numeric(as.POSIXct("2018-01-01"), tz="GMT")
+PRED_END <- as.numeric(as.POSIXct("2018-04-01"), tz="GMT")
+PERIOD <- 86400 # 24 hours
+PERIOD_VALUES <- c(300, 7200, 86400)
+# 5min, 2hours, 24hours
+PREDICTION_LENGTH <- 90*86400/PERIOD # days
+df <- fromJSON(sprintf(POLO_URL, PAIR, START, END, PERIOD))
+pred_df <- fromJSON(sprintf(POLO_URL, PAIR, PRED_START, PRED_END, PERIOD))
+train <- ts(df[8])
+test <- ts(pred_df[8])
+```
+
+```{r, echo=FALSE}
+# Take logarithm of dataset
+plot(log(c(train, test)), type="l", xlab="Time (Days)", ylab="Log of Volume Weighted Average Price")
+lines(x=seq(length(train)+1, length(train)+length(test)), y=log(test), col="red")
+```
+
+```{r, echo=FALSE}
+plot(diff(train), ylab="Lagged Difference of VWAP", xlab="Time (Days)")
+abline(h=0)
+# Difference once
+plot(diff(log(train)), ylab="Lagged Difference of VWAP", xlab="Time (Days)")
+abline(a=0, b=0)
+```
+
+```{r, echo=FALSE}
+acf(diff(log(train)), lag.max=50)
+# Rapid decay to zero - MA 1
+pacf(diff(log(train)), lag.max=50)
+# Seasonal AR(35) - last line before 95% confidence
+
+acf(diff(train), lag.max=50)
+pacf(diff(train), lag.max=50)
+```
+
+```{r, echo=FALSE}
+# Create model, predict test set, and plot prediction with test set and error
+
+ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,0,0), period=35))
+ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
+error <- abs((c(test)-ARIMA.pred$pred))
+error <- ((error/max(error))*(min(log(test))/max(log(test))))+min(log(test))
+#plot(log(c(train, test)), type="l", xlab="Time (Days)", ylab="Log of Volume Weighted Average Price")
+#lines(x=seq(length(train)+1, length(train)+length(test)), y=log(test), col="red")
+plot(log(test), lwd=2, xlab="Time (Days)", ylab="Log of VWAP")
+lines(x=seq(along=test), log(ARIMA.pred$pred), col="blue", lwd=1)
+```
+
+
+```{r, echo=FALSE}
+A1 <- arima(train, order=c(0,1,0), seasonal=list(order=c(1,0,0), period=35))
+sprintf("AIC: %f BIC: %f", AIC(A1), BIC(A1))
+A2 <- arima(train, order=c(0,1,1), seasonal=list(order=c(1,0,0), period=35))
+sprintf("AIC: %f BIC: %f", AIC(A2), BIC(A2))
+A3 <- arima(train, order=c(0,1,2), seasonal=list(order=c(1,0,0), period=35))
+sprintf("AIC: %f BIC: %f", AIC(A3), BIC(A3))
+A4 <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,0,0), period=35))
+sprintf("AIC: %f BIC: %f", AIC(A4), BIC(A4))
+A5 <- arima(train, order=c(1,1,1), seasonal=list(order=c(1,0,0), period=35))
+sprintf("AIC: %f BIC: %f", AIC(A5), BIC(A5))
+
+B1 <- arima(train, order=c(0,1,1), seasonal=list(order=c(1,0,0), period=1))
+sprintf("AIC: %f BIC: %f", AIC(B1), BIC(B1))
+B2 <- arima(train, order=c(0,1,1), seasonal=list(order=c(1,0,0), period=7))
+sprintf("AIC: %f BIC: %f", AIC(B2), BIC(B2))
+B3 <- arima(train, order=c(0,1,1), seasonal=list(order=c(1,0,0), period=14))
+sprintf("AIC: %f BIC: %f", AIC(B3), BIC(B3))
+B4 <- arima(train, order=c(0,1,1), seasonal=list(order=c(1,0,0), period=21))
+sprintf("AIC: %f BIC: %f", AIC(B4), BIC(B4))
+B6 <- arima(train, order=c(0,1,1), seasonal=list(order=c(1,0,0), period=49))
+sprintf("AIC: %f BIC: %f", AIC(B6), BIC(B6))
+B7 <- arima(train, order=c(0,1,1), seasonal=list(order=c(1,0,0), period=90))
+sprintf("AIC: %f BIC: %f", AIC(B7), BIC(B7))
+```
+
+```{r, echo=FALSE}
+df2 <- fromJSON(sprintf(POLO_URL, PAIR, START, PRED_END, PERIOD))
+series <- ts(df2[8])
+model <- arima(series, order=c(1,1,1), seasonal=list(order=c(1,1,1), period=7))
+model.prediction <- predict(model, n.ahead=60)$pred
+plot(log(c(series, model.prediction)), type='l')
+lines(x=seq(length(series)+1, length(series)+length(model.prediction)), y=log(model.prediction), col="red")
+```
