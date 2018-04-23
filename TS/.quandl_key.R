@@ -1,1 +1,0 @@
-QUANDL_API_KEY <- "cVAMpz_qHERsm5ycGJTc"
