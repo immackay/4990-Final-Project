@@ -1,0 +1,92 @@
+% ----------------------------
+% Ian MacKay and Oamar Kanji
+% Clustering and Linear Models
+% MATH 4990 Final Project
+% ----------------------------
+\documentclass[12pt]{article}
+\usepackage{color,graphicx}
+\usepackage{url}
+
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{9in}
+
+% -----
+% Start
+% -----
+\begin{document}
+\title{\vspace{-1.5in} Time Series Models and Object Clustering}
+\author{Oamar Kanji \& Ian MacKay}
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+  \begin{center}
+
+  \end{center}
+
+\pagebreak
+
+% ----------
+% Clustering
+% ----------
+\section{Clustering}
+  Clustering is the act of separating data into discrete groups to help analysis and prediction.
+\subsection{k-means}
+\subsection{k++means}
+\subsection{Initialization Effects}
+\subsection{Comparisons}
+\subsection{Image Segmentation Experiments}
+
+\pagebreak
+
+% Time Series Models
+\section{Time Series Models}
+  Time Series Models are used for a number of analytical and predictive purposes, such as modeling fluctuating inventory levels, commodity prices, and stock prices.
+\subsection{Box-Jenkins Methodology}
+  A time series can contain any of the following components:
+  \begin{itemize}
+    \item Trend
+    \item Seasonality
+    \item Cyclic
+    \item Random
+  \end{itemize}
+  % change these
+  \begin{enumerate}
+    \item Condition data and select a model
+    \begin{itemize}
+      \item Identify and account for any trends or seasonality in the time series.
+      \item Examine the remaining time series and determine a suitable model.
+    \end{itemize}
+    \item Estimate the model parameters
+    \item Assess the model and return to step one if necessary
+  \end{enumerate}
+
+\subsection{ARIMA Models}
+  ARIMA Models are a combination of Autoregression, Integration, and Moving Average models. They are denoted by ARIMA(p,d,q), where p=autoregression factor, d=level of integration, and q=moving average factor
+
+\subsection{ARIMA Variable Selection}
+
+% Not sure about these next ones
+% \subsection{Recurrent Neural Network}
+% \subsection{Multivariate Analysis}
+% \subsection{Price Prediction Experiments}
+
+\pagebrea
+
+% End stuff
+\section{Conclusion}
+
+\section{Figures \& Tables}
+
+% Bibliography
+\bibliographystyle{plain}
+\bibliography{sources}
+
+\section{Appendix}
+% R Code
+% Python Code
+% Link to repo
+\end{document}

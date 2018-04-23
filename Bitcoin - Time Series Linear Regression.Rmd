@@ -5,27 +5,39 @@ date: '2018-04-06'
 output: html_document
 ---
 
+- introduce dataset
+- define ARIMA models
+- describe picking of variables
+- predictions on dataset
+- comparison with other methods and analysis on predictions
+- bibliography
 
 ```{r setup, include=FALSE}
 library(jsonlite)
 library(plotly)
 
-# Returns OHLC + Volume
-POLO_URL <- "https://poloniex.com/public?command=returnChartData&currencyPair=%s&start=%d&end=%d&period=%i"
-# Returns tick by tick trades (max 50000)
-# POLO_URL2 <- "https://poloniex.com/public?command=returnTradeHistory&currencyPair=%s&start=%d&end=%d"
+get.polo.url <- function(start=1, end=1, pair="USDT_BTC", period=86400, train=TRUE) {
+  # Returns OHLC + Volume
+  POLO_URL <- "https://poloniex.com/public?command=returnChartData&currencyPair=%s&start=%d&end=%d&period=%i"
+  # Returns tick by tick trades (max 50000)
+  # POLO_URL2 <- "https://poloniex.com/public?command=returnTradeHistory&currencyPair=%s&start=%d&end=%d"
 
-PAIR <- "USDT_BTC"
-START <- as.numeric(as.POSIXct("2013-01-01"), tz="GMT")
-END <- as.numeric(as.POSIXct("2018-01-01"), tz="GMT")
-PRED_START <- as.numeric(as.POSIXct("2018-01-01"), tz="GMT")
-PRED_END <- as.numeric(as.POSIXct("2018-04-01"), tz="GMT")
-PERIOD <- 86400 # 24 hours
-PERIOD_VALUES <- c(300, 7200, 86400)
-# 5min, 2hours, 24hours
-PREDICTION_LENGTH <- 90*86400/PERIOD # days
-df <- fromJSON(sprintf(POLO_URL, PAIR, START, END, PERIOD))
-pred_df <- fromJSON(sprintf(POLO_URL, PAIR, PRED_START, PRED_END, PERIOD))
+  START <- as.numeric(as.POSIXct(sprintf("2013-%d-01", start)), tz="GMT")
+  END <- as.numeric(as.POSIXct(sprintf("2017-%d-01", end)), tz="GMT")
+  PRED_START <- as.numeric(as.POSIXct(sprintf("2017-%d-01", end)), tz="GMT")
+  PRED_END <- as.numeric(as.POSIXct(sprintf("2017-%d-01", end)), tz="GMT")+7776000
+  # PERIOD_VALUES <- c(300, 7200, 86400)
+  # 5min, 2hours, 24hours
+  PREDICTION_LENGTH <- 90*86400/PERIOD # days
+  if(train) {
+    return(sprintf(POLO_URL, pair, START, END, period))
+  }
+  else {
+    return(sprintf(POLO_URL, pair, PRED_START, PRED_END, period))
+  }
+}
+df <- fromJSON(get.polo.url(start=1, end=1))
+pred_df <- fromJSON(get.polo.url(start=1,end=1,train=F))
 train <- ts(df[8])
 test <- ts(pred_df[8])
 ```
@@ -57,7 +69,7 @@ pacf(diff(train), lag.max=50)
 ```{r, echo=FALSE}
 # Create model, predict test set, and plot prediction with test set and error
 
-ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,0,0), period=35))
+ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=41))
 ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
 error <- abs((c(test)-ARIMA.pred$pred))
 error <- ((error/max(error))*(min(log(test))/max(log(test))))+min(log(test))
@@ -95,10 +107,39 @@ sprintf("AIC: %f BIC: %f", AIC(B7), BIC(B7))
 ```
 
 ```{r, echo=FALSE}
-df2 <- fromJSON(sprintf(POLO_URL, PAIR, START, PRED_END, PERIOD))
-series <- ts(df2[8])
-model <- arima(series, order=c(1,1,1), seasonal=list(order=c(1,1,1), period=7))
-model.prediction <- predict(model, n.ahead=60)$pred
-plot(log(c(series, model.prediction)), type='l')
+df2 <- fromJSON(get.polo.url())
+series <- ts(df[8])
+model <- arima(series, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=41))
+model.prediction <- predict(model, n.ahead=90)$pred
+plot(log(ts(df2[8])), type='l')
 lines(x=seq(length(series)+1, length(series)+length(model.prediction)), y=log(model.prediction), col="red")
+```
+
+```{r, echo=FALSE}
+# long
+errors <- array(dim=c(8,79))
+for(j in seq(1,40,0.5)) {
+  for(i in 1:8) {
+    df <- fromJSON(get.polo.url(start=i,end=i))
+    pred_df <- fromJSON(get.polo.url(start=i,end=i,train=F))
+    train <- ts(df[8])
+    test <- ts(pred_df[8])
+    ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=j))
+    ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
+    error <- sum(abs(c(test)-ARIMA.pred$pred))
+    errors[i,j] <- error
+  }
+}
+```
+```
+#install.packages('rnn')
+library(rnn)
+TRAIN_TIME = df[1]
+TRAIN_VOLUME = df[6]
+TRAIN_PRICE = df[4]
+TEST_TIME = pred_df[1]
+TEST_VOLUME = pred_df[6]
+TEST_PRICE = pred_df[4]
+
+
 ```
