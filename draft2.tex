@@ -19,16 +19,16 @@
 % Start
 % -----
 \begin{document}
-\title{\vspace{-1.5in} Time Series Models and Object Clustering}
+\title{Time Series Models and Object Clustering}
 \author{Oamar Kanji \& Ian MacKay}
 \maketitle
 
 \tableofcontents
 
+\pagebreak
+
 \section {Introduction}
   \par The first section of this report will seek to show that the initialization step in \textit{k}-means clustering is non-trivial, as the initial positions chosen for cluster means can significantly affect the final classification of the data set. The second section of this report will explore the use of ARIMA models in the analysis of Bitcoin prices, and some other methods of time series analysis.
-
-\pagebreak
 
 % ----------
 % Clustering
@@ -73,9 +73,9 @@
 
   \par The histogram of SSE is shown in Figure 2.4.4, with a mean of 174.73, variance of 55109, and IQR of 239.18. It has a large spread and quite a large variance. It is unimodal with the greatest frequency of mean squared errors around the mean. It can be deduced that there is a large degree of inconsistency in the final positions of the centroids that is leading to large spread of sum of squared errors and a large mean for the sum of squared error.
 
-  \par \textit{k++}-means uses a more sophisticated method of initialization that requires more computation than regular \textit{k}-means. Despite this, \textit{k++}-means usually performs quicker than regular \textit{k}-means as it reduces the subsequent computation required for the means to reach their final positions. This is because \textit{k++} initialization places the centroids close to their final positions which for the same reason reduces the likelihood of finding a local optimum.
+  \pagebreak
 
-\pagebreak
+  \par \textit{k++}-means uses a more sophisticated method of initialization that requires more computation than regular \textit{k}-means. Despite this, \textit{k++}-means usually performs quicker than regular \textit{k}-means as it reduces the subsequent computation required for the means to reach their final positions. This is because \textit{k++} initialization places the centroids close to their final positions which for the same reason reduces the likelihood of finding a local optimum.
 
   \par In order to perform a direct comparison between \textit{k++}-means initialization and plain \textit{k}-means, the figures previously used have been replotted but this time using \textit{k++} initialization. Figure 2.4.5 shows the final position of the centroids for the \textit{k}-means algorithm with \textit{k++} initialization performed 100 times on the same data set, where the centroids are simply plotted on top of each other each time \textit{k}-means is performed. It should be quite apparent that there is much less dispersion of centroids when \textit{k++} initialization is performed. While centroids still exist that lie well outside any cluster, occurrences of this are far reduced compared to regular \textit{k}-means initialization. The centroids within their respective clusters are more densely situated which shows us that \textit{k++} initialization results in greater consistency in the final position of centroids.
 
@@ -89,9 +89,9 @@
 \subsection {Pre-processing}
   \par Performing \textit{k}-means clustering on an image requires a pre-processing step, as the shape of the raw data stored in an image is different from what the \textit{k}-means algorithm expects. \textit{k}-means can perform on data of several dimensions, where each dimension represents a particular feature in the data. For an image, there are three features; the Red, Green, and Blue values of each pixel. Therefore, the \textit{k}-means algorithm is fed a [n,3] matrix, n being the number of pixels and 3 being the number of features.
 
+  \pagebreak
+  
   \par This data is not the shape of the image data, as RGB images are stored as a three dimensional array (Figure 2.6.1 illustrates this). The shape of this three dimensional array is as follows: width, height, 3. Where width and height are the dimensions of the image in pixels. The width and height arrays hold the x and y positions of each pixel on the image and the final dimension is an array of size 3 that holds a Red, Green, and Blue value, together referred to as an RGB triplet.
-
-\pagebreak
 
   \par It may be helpful to visualize an image as illustrated in the figure mentioned above; as three two-dimensional arrays layered on top of each other. Each cell in a particular two dimensional array holds the intensity of either Red, Green, or Blue and the index of a particular cell corresponds to the position of that pixel on the image. This three dimensional array of dimensions (width, height, 3) can be reshaped into a two dimensional array by multiplying out the first two dimensions ($W\times H$,3) for it to be accepted by the \textit{k}-means clustering algorithm.
 
