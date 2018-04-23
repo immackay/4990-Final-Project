@@ -96,13 +96,29 @@ lines(x=seq(length(series)+1, length(series)+length(ARIMA.pred$pred)), y=log(ARI
 
 # install.packages('rnn')
 library(rnn)
-X = matrix(1:683)
+X = matrix(1:680, nrow=34)
 #TRAIN_VOLUME = df[6]
-Y = matrix(df[[8]])
-TEST_TIME = 684:684+PREDICTION_LENGTH
-#TEST_VOLUME = pred_df[6]
-TEST_PRICE = pred_df[[8]]
+Y = matrix(df[1:680,8], nrow=34)
 
 set.seed(312)
 
+X <- (X-min(X)) / (max(X)-min(X))
+Y <- (Y-min(Y)) / (max(Y)-min(Y))
 
+X <- t(X)
+Y <- t(Y)
+
+train <- 1:15
+test <- 16:20
+
+model <- trainr(Y = Y[train,],
+                X = X[train,],
+                learningrate = 0.025,
+                hidden_dim = c(680, 680),
+                numepochs = 3000)
+
+Y.pred <- predictr(model, X)
+
+plot(as.vector(t(Y)), col="red", type="l", main="Actual vs Predicted", ylab="Y, Y.pred")
+lines(as.vector(t(Y.pred)), type="l", col="blue")
+legend("topright", c("Predicted", "Real"), col=c("blue","red"), lty=c(1,1), lwd=c(1,1))
