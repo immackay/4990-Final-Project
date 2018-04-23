@@ -5,7 +5,8 @@
 % ----------------------------
 \documentclass[12pt]{article}
 \usepackage{color,graphicx}
-\usepackage{url}
+\usepackage{url, hyperref}
+\usepackage{minted}
 
 \setlength{\oddsidemargin}{0in}
 \setlength{\evensidemargin}{0in}
@@ -22,71 +23,103 @@
 
 \tableofcontents
 
-\section{Introduction}
-  \begin{center}
-
-  \end{center}
-
-\pagebreak
+\section {Introduction}
+  The first section of this report will seek to show that the initialization step in \textit{k}-means clustering is non-trivial, as the initial positions chosen for cluster means can significantly affect the final classification of the data set. The second section of this report will explore the use of ARIMA models in the analysis of Bitcoin prices, and some other methods of time series analysis.
 
 % ----------
 % Clustering
 % ----------
-\section{Clustering}
-  Clustering is the act of separating data into discrete groups to help analysis and prediction.
-\subsection{k-means}
-\subsection{k++means}
-\subsection{Initialization Effects}
-\subsection{Comparisons}
-\subsection{Image Segmentation Experiments}
+\section {Clustering}
+  Clustering is the act of separating data into discrete groups to help analysis and prediction. It is also used for several compression and quantization algorithms, which are very important for image files. The resultant groups in k means clustering is highly dependent upon the method of centroid initialization.
+\subsection {k-means}
+  In its simplest form, \textit{k}-means assigns initial cluster means randomly. k data points are sampled from the data set and assigned as the initial positions for the centroids, thus sampling from a uniform distribution where every datapoint has an equal chance of being chosen.
+\subsection {k++means}
+  Proposed in 2007 by David Arthur and Sergei Vassilvitskii\cite{km_1}, \textit{k++}-means clustering seeks to reduce the inconsistency and increase the accuracy of the \textit{k}-means algorithm with a more sophisticated initialization. The general idea of this algorithm is to initialize centroids far away from each other such that multiple centroids are unlikely to find themselves within a single cluster that would lead to a local optimum.
+
+  \par Unlike regular \textit{k}-means where initial centroids are sampled from a uniform distribution, \textit{k++} initializes centroids by sampling from a weighted distribution where the probability of a data point being chosen is proportionate to its distance from all other centroids.
+\subsection {Initialization}
+  The sum of squared error (henceforth referred to as SSE) can be calculated as follows:\\
+  $SSE = \sum \limits_{i=1}^k \sum \limits_{p \in C_i} (p-m_i)^2$
+  \begin{itemize}
+    \item (k) number of clusters
+    \item (C) set of objects in cluster
+    \item (m) center point (mean) of cluster
+  \end{itemize}
+
+  \par Let us assume that for a particular value of k there exists \textbf{\textit{k} final centroids} that will result in the data set being clustered in a way that will minimize the SSE. Let us refer to these \textit{k} clusters as the \textbf{\textit{k} best fitting clusters} as they give a SSE that is small for that particular value of k. An example of this best case classification is shown in Figure 2.4.1.
+
+  \par Sometimes, one or more centroids find what what is called a \textit{local optimum}. This is usually brought about by centroids that are initialized close to each other, which influences the final classification of data points to an extent that the SSE is large, as seen in Figure 2.4.2. In these examples, two initialized centroids do not find their way to the best fitting clusters. Instead, the two centroids remain close to each other, partitioning what should be a single cluster into two. As these leaves one ideal cluster out, it forces one of the remaining centroids to group two clusters together, resulting in an enlarged SSE.
+
+  \par To observe the spread of results returned by \textit{k}-means clustering, the algorithm was repeated 100 times on the data set and the resultant centroids were plotted on top. This is shown in Figure 2.4.3, and the histogram of SSE is shown in Figure 2.4.4. It can be observed that the areas of highest densities of plotted centroids lie over the four best clusters in the dataset. This may indicate that \textit{k}-means achieves finding the four best clusters on most runs, but there is a noticeable amount of dispersion of centroids which shows that the algorithm is inconsistent. This is a direct consequence of the method of initialization used in plain \textit{k}-means clustering.
+\subsection {Image Segmentation Experiments}
 
 \pagebreak
 
 % Time Series Models
-\section{Time Series Models}
-  Time Series Models are used for a number of analytical and predictive purposes, such as modeling fluctuating inventory levels, commodity prices, and stock prices.
-\subsection{Box-Jenkins Methodology}
+\section {Time Series Models}
+  Time Series Models are used for a number of analytical and predictive purposes, such as modeling fluctuating inventory levels, commodity prices, and stock prices. They are highly useful for modeling real world phenomena, given that most are governed by time. \cite{wiki-ts}
+
+\subsection {Box-Jenkins Methodology}
   A time series can contain any of the following components:
   \begin{itemize}
-    \item Trend
-    \item Seasonality
-    \item Cyclic
-    \item Random
+    \item Trend - Long-term movement, similar to y=mx+b
+    \item Seasonality - Fixed periodic fluctuation in y, due to calendar
+    \item Cyclic - Periodic fluctuation in y, due to other influences
+    \item Random - Noise + hidden influences
   \end{itemize}
-  % change these
+  A summary of the Box-Jenkins Methodology is this:
   \begin{enumerate}
-    \item Condition data and select a model
+    \item Preprocess data and choose a model based on the components
     \begin{itemize}
-      \item Identify and account for any trends or seasonality in the time series.
-      \item Examine the remaining time series and determine a suitable model.
+      \item Account for any trends or periodicity in the data.
+      \item Determine a suitable model from remaining data.
     \end{itemize}
     \item Estimate the model parameters
     \item Assess the model and return to step one if necessary
   \end{enumerate}
 
-\subsection{ARIMA Models}
-  ARIMA Models are a combination of Autoregression, Integration, and Moving Average models. They are denoted by ARIMA(p,d,q), where p=autoregression factor, d=level of integration, and q=moving average factor
+\subsection {ARIMA Models}
+  ARIMA Models are a combination of Autoregression, Integration, and Moving Average models. Autoregression refers to how the resultant variable is dependent on its prior values, Moving Average refers to how the resultant variable is dependent on prior error terms, and Integration refers to the level of differencing on the dataset. They are denoted by \textit{ARIMA(p,d,q)}, where \textit{p}=autoregression factor, \textit{d}=level of integration, and \textit{q}=moving average factor. There is also a SARIMA (Seasonal Arima) model indicated by \textit{ARIMA(p,d,q)(P,D,Q)s}, where the upper case variables are the same as previous, except for \textit{s}, which indicates the time lag involved in seasonality.
 
-\subsection{ARIMA Variable Selection}
+\subsection {ARIMA Variable Selection}
+  Selection of ARIMA model variables can be difficult depending on the dataset. The first step is to remove any trends from the data by differencing, which is shown on Bitcoin data in Figure 3.3.1. The second step is to then analyze the Autocorrelation Factor (ACF) plot and Partial-ACF plot of the data, as shown in Table 3.3.1 and Figures 3.3.2-3.3.3.
 
-% Not sure about these next ones
-% \subsection{Recurrent Neural Network}
-% \subsection{Multivariate Analysis}
-% \subsection{Price Prediction Experiments}
-
-\pagebrea
+\subsection {Price Prediction Experiments}
+  Bitcoin is a highly volatile cryptocurrency that is traded constantly worldwide. Thus, it presents an interesting, large, and highly detailed dataset that is perfect for experimenting with time series models on. The log of Volume Weighted Average Price over the period (01/01/13-04/01/17) can be seen in figure 3.4.1.
 
 % End stuff
-\section{Conclusion}
+\section {Conclusion}
 
-\section{Figures \& Tables}
+\section {Figures \& Tables}
+
+  Figure 2.4.1:\\
+  \includegraphics[width=5in]{plots/km_plot1.jpeg}\\
+  Figure 2.4.2:\\
+  \includegraphics[width=5in]{plots/km_plot2.jpeg}\\
+  Figure 2.4.3:\\
+  \includegraphics[width=5in]{plots/km_plot3.jpeg}\\
+  Figure 2.4.4:\\
+  \includegraphics[width=5in]{plots/km_plot4.jpeg}\\
+
+  Figure 3.3.1:\\
+  \includegraphics[width=5in]{plots/ts_plot2.jpeg}\\
+  Figure 3.3.2:\\
+  \includegraphics[width=5in]{plots/ts_plot3.jpeg}\\
+  Figure 3.3.3:\\
+  \includegraphics[width=5in]{plots/ts_plot4.jpeg}\\
+  Figure 3.4.1:\\
+  \includegraphics[width=5in]{plots/ts_plot1.jpeg}\\
+  Figure 3.4.2:\\
+  \includegraphics[width=5in]{plots/ts_plot5.jpeg}\\
+  Figure 3.4.3:\\
+  \includegraphics[width=5in]{plots/ts_plot6.jpeg}\\
+
+\input{code}
+% Link to repo
+\url{https://github.com/immackay/4990-Final-Project}{GitHub repository for code}
 
 % Bibliography
 \bibliographystyle{plain}
 \bibliography{sources}
 
-\section{Appendix}
-% R Code
-% Python Code
-% Link to repo
 \end{document}

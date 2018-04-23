@@ -1,14 +1,16 @@
-\contentsline {section}{\numberline {1}Introduction}{1}
-\contentsline {section}{\numberline {2}Clustering}{2}
-\contentsline {subsection}{\numberline {2.1}k-means}{2}
-\contentsline {subsection}{\numberline {2.2}k++means}{2}
-\contentsline {subsection}{\numberline {2.3}Initialization Effects}{2}
-\contentsline {subsection}{\numberline {2.4}Comparisons}{2}
-\contentsline {subsection}{\numberline {2.5}Image Segmentation Experiments}{2}
-\contentsline {section}{\numberline {3}Time Series Models}{3}
-\contentsline {subsection}{\numberline {3.1}Box-Jenkins Methodology}{3}
-\contentsline {subsection}{\numberline {3.2}ARIMA Models}{3}
-\contentsline {subsection}{\numberline {3.3}ARIMA Variable Selection}{3}
-\contentsline {section}{\numberline {4}Conclusion}{4}
-\contentsline {section}{\numberline {5}Figures \& Tables}{4}
-\contentsline {section}{\numberline {6}Appendix}{4}
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}
+\contentsline {section}{\numberline {2}Clustering}{1}{section.2}
+\contentsline {subsection}{\numberline {2.1}k-means}{2}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}k++means}{2}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Initialization}{2}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Image Segmentation Experiments}{3}{subsection.2.4}
+\contentsline {section}{\numberline {3}Time Series Models}{4}{section.3}
+\contentsline {subsection}{\numberline {3.1}Box-Jenkins Methodology}{4}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}ARIMA Models}{4}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}ARIMA Variable Selection}{4}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}Price Prediction Experiments}{5}{subsection.3.4}
+\contentsline {section}{\numberline {4}Conclusion}{5}{section.4}
+\contentsline {section}{\numberline {5}Figures \& Tables}{5}{section.5}
+\contentsline {section}{\numberline {6}Appendix}{10}{section.6}
+\contentsline {subsection}{\numberline {6.1}Bitcoin - Time Series Linear Regression}{10}{subsection.6.1}
+\contentsline {subsection}{\numberline {6.2}Centroid Plots and Distribution of SSE}{16}{subsection.6.2}

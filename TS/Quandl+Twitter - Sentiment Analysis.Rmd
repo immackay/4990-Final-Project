@@ -1,0 +1,6 @@
+---
+title: 'Quandl + Twitter: Sentiment Analysis'
+author: "Ian MacKay"
+date: '2018-04-06'
+output: html_document
+---

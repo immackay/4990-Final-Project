@@ -1,0 +1,268 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{require}\PYG{p}{(}jsonlite\PYG{p}{)}
+\PYG{k+kn}{require}\PYG{p}{(}plotly\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}}
+\PYG{c+c1}{\PYGZsh{} get.polo.url()}
+\PYG{c+c1}{\PYGZsh{}}
+\PYG{c+c1}{\PYGZsh{}   Creates a poloniex api call url}
+\PYG{c+c1}{\PYGZsh{}   Either for training (train=T) or testing (train=F)}
+\PYG{c+c1}{\PYGZsh{}   Testing end is 90 days past training end}
+\PYG{c+c1}{\PYGZsh{}}
+\PYG{c+c1}{\PYGZsh{} @param start, default=1}
+\PYG{c+c1}{\PYGZsh{}   The start of your training dataset}
+\PYG{c+c1}{\PYGZsh{} @param end, default=1}
+\PYG{c+c1}{\PYGZsh{}   The end of your training dataset}
+\PYG{c+c1}{\PYGZsh{} @param pair, default=\PYGZdq{}USDT\PYGZus{}BTC\PYGZdq{}}
+\PYG{c+c1}{\PYGZsh{}   Token pairs, taken from the market list on https://poloniex.com/}
+\PYG{c+c1}{\PYGZsh{} @param period, default=86400}
+\PYG{c+c1}{\PYGZsh{}   Period of dataset in seconds, default=1 day}
+\PYG{c+c1}{\PYGZsh{} @param train, default=TRUE}
+\PYG{c+c1}{\PYGZsh{}   Whether you want the training or testing url}
+\PYG{c+c1}{\PYGZsh{} @returns string}
+\PYG{c+c1}{\PYGZsh{}   API URL for accessing poloniex data}
+\PYG{c+c1}{\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}}
+get.polo.url \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{k+kr}{function}\PYG{p}{(}start\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{,} end\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{,} pair\PYG{o}{=}\PYG{l+s}{\PYGZdq{}USDT\PYGZus{}BTC\PYGZdq{}}\PYG{p}{,} period\PYG{o}{=}\PYG{l+m}{86400}\PYG{p}{,} train\PYG{o}{=}\PYG{k+kc}{TRUE}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+  \PYG{c+c1}{\PYGZsh{} Returns OHLC + Volume}
+  POLO\PYGZus{}URL \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{l+s}{\PYGZdq{}https://poloniex.com/public?command=returnChartData\PYGZam{}currencyPair=\PYGZpc{}s\PYGZam{}start=\PYGZpc{}d\PYGZam{}end=\PYGZpc{}d\PYGZam{}period=\PYGZpc{}i\PYGZdq{}}
+  \PYG{c+c1}{\PYGZsh{} Returns tick by tick trades (max 50000)}
+  \PYG{c+c1}{\PYGZsh{} POLO\PYGZus{}URL2 \PYGZlt{}\PYGZhy{} \PYGZdq{}https://poloniex.com/public?command=returnTradeHistory\PYGZam{}currencyPair=\PYGZpc{}s\PYGZam{}start=\PYGZpc{}d\PYGZam{}end=\PYGZpc{}d\PYGZdq{}}
+
+  START \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{k+kp}{as.numeric}\PYG{p}{(}\PYG{k+kp}{as.POSIXct}\PYG{p}{(}\PYG{k+kp}{sprintf}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}2013\PYGZhy{}\PYGZpc{}d\PYGZhy{}01\PYGZdq{}}\PYG{p}{,} start\PYG{p}{)),} tz\PYG{o}{=}\PYG{l+s}{\PYGZdq{}GMT\PYGZdq{}}\PYG{p}{)}
+  END \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{k+kp}{as.numeric}\PYG{p}{(}\PYG{k+kp}{as.POSIXct}\PYG{p}{(}\PYG{k+kp}{sprintf}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}2017\PYGZhy{}\PYGZpc{}d\PYGZhy{}01\PYGZdq{}}\PYG{p}{,} end\PYG{p}{)),} tz\PYG{o}{=}\PYG{l+s}{\PYGZdq{}GMT\PYGZdq{}}\PYG{p}{)}
+  PRED\PYGZus{}START \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{k+kp}{as.numeric}\PYG{p}{(}\PYG{k+kp}{as.POSIXct}\PYG{p}{(}\PYG{k+kp}{sprintf}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}2017\PYGZhy{}\PYGZpc{}d\PYGZhy{}01\PYGZdq{}}\PYG{p}{,} end\PYG{p}{)),} tz\PYG{o}{=}\PYG{l+s}{\PYGZdq{}GMT\PYGZdq{}}\PYG{p}{)}
+  PRED\PYGZus{}END \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{k+kp}{as.numeric}\PYG{p}{(}\PYG{k+kp}{as.POSIXct}\PYG{p}{(}\PYG{k+kp}{sprintf}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}2017\PYGZhy{}\PYGZpc{}d\PYGZhy{}01\PYGZdq{}}\PYG{p}{,} end\PYG{p}{)),} tz\PYG{o}{=}\PYG{l+s}{\PYGZdq{}GMT\PYGZdq{}}\PYG{p}{)}\PYG{l+m}{+7776000}
+  \PYG{c+c1}{\PYGZsh{} PERIOD\PYGZus{}VALUES \PYGZlt{}\PYGZhy{} c(300, 7200, 86400)}
+  \PYG{c+c1}{\PYGZsh{} 5min, 2hours, 24hours}
+  PREDICTION\PYGZus{}LENGTH \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{l+m}{90}\PYG{o}{*}\PYG{l+m}{86400}\PYG{o}{/}PERIOD \PYG{c+c1}{\PYGZsh{} days}
+  \PYG{k+kr}{if}\PYG{p}{(}train\PYG{p}{)} \PYG{p}{\PYGZob{}}
+    \PYG{k+kr}{return}\PYG{p}{(}\PYG{k+kp}{sprintf}\PYG{p}{(}POLO\PYGZus{}URL\PYG{p}{,} pair\PYG{p}{,} START\PYG{p}{,} END\PYG{p}{,} period\PYG{p}{))}
+  \PYG{p}{\PYGZcb{}}
+  \PYG{k+kr}{else} \PYG{p}{\PYGZob{}}
+    \PYG{k+kr}{return}\PYG{p}{(}\PYG{k+kp}{sprintf}\PYG{p}{(}POLO\PYGZus{}URL\PYG{p}{,} pair\PYG{p}{,} PRED\PYGZus{}START\PYG{p}{,} PRED\PYGZus{}END\PYG{p}{,} period\PYG{p}{))}
+  \PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{c+c1}{\PYGZsh{} Data Creation and Visualization}
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+df \PYG{o}{\PYGZlt{}\PYGZhy{}} fromJSON\PYG{p}{(}get.polo.url\PYG{p}{(}start\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{,} end\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{))}
+pred\PYGZus{}df \PYG{o}{\PYGZlt{}\PYGZhy{}} fromJSON\PYG{p}{(}get.polo.url\PYG{p}{(}start\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{,}end\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{,}train\PYG{o}{=}\PYG{n+nb+bp}{F}\PYG{p}{))}
+train \PYG{o}{\PYGZlt{}\PYGZhy{}} ts\PYG{p}{(}df\PYG{p}{[}\PYG{l+m}{8}\PYG{p}{])}
+test \PYG{o}{\PYGZlt{}\PYGZhy{}} ts\PYG{p}{(}pred\PYGZus{}df\PYG{p}{[}\PYG{l+m}{8}\PYG{p}{])}
+
+plot\PYG{p}{(}\PYG{k+kp}{log}\PYG{p}{(}\PYG{k+kt}{c}\PYG{p}{(}train\PYG{p}{,} test\PYG{p}{)),} type\PYG{o}{=}\PYG{l+s}{\PYGZdq{}l\PYGZdq{}}\PYG{p}{,} xlab\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Time (Days)\PYGZdq{}}\PYG{p}{,} ylab\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Log of Volume Weighted Average Price\PYGZdq{}}\PYG{p}{,} main\PYG{o}{=}\PYG{l+s}{\PYGZdq{}VWAP vs Time\PYGZdq{}}\PYG{p}{)}
+lines\PYG{p}{(}x\PYG{o}{=}\PYG{k+kp}{seq}\PYG{p}{(}\PYG{k+kp}{length}\PYG{p}{(}train\PYG{p}{)}\PYG{l+m}{+1}\PYG{p}{,} \PYG{k+kp}{length}\PYG{p}{(}train\PYG{p}{)}\PYG{o}{+}\PYG{k+kp}{length}\PYG{p}{(}test\PYG{p}{)),} y\PYG{o}{=}\PYG{k+kp}{log}\PYG{p}{(}test\PYG{p}{),} col\PYG{o}{=}\PYG{l+s}{\PYGZdq{}red\PYGZdq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{c+c1}{\PYGZsh{} Differences}
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+plot\PYG{p}{(}\PYG{k+kp}{diff}\PYG{p}{(}train\PYG{p}{),} ylab\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Lagged Difference of VWAP\PYGZdq{}}\PYG{p}{,} xlab\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Time (Days)\PYGZdq{}}\PYG{p}{,} main\PYG{o}{=}\PYG{l+s}{\PYGZdq{}diff(VWAP) vs Time\PYGZdq{}}\PYG{p}{)}
+abline\PYG{p}{(}h\PYG{o}{=}\PYG{l+m}{0}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{c+c1}{\PYGZsh{} ACFs and PACFs}
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+acf\PYG{p}{(}\PYG{k+kp}{diff}\PYG{p}{(}train\PYG{p}{),} lag.max\PYG{o}{=}\PYG{l+m}{50}\PYG{p}{,} main\PYG{o}{=}\PYG{l+s}{\PYGZdq{}ACF of diff(train)\PYGZdq{}}\PYG{p}{)}
+pacf\PYG{p}{(}\PYG{k+kp}{diff}\PYG{p}{(}train\PYG{p}{),} lag.max\PYG{o}{=}\PYG{l+m}{50}\PYG{p}{,} main\PYG{o}{=}\PYG{l+s}{\PYGZdq{}PACF of diff(train)\PYGZdq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{c+c1}{\PYGZsh{} Model and Prediction}
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+ARIMA \PYG{o}{\PYGZlt{}\PYGZhy{}} arima\PYG{p}{(}train\PYG{p}{,} order\PYG{o}{=}\PYG{k+kt}{c}\PYG{p}{(}\PYG{l+m}{1}\PYG{p}{,}\PYG{l+m}{1}\PYG{p}{,}\PYG{l+m}{0}\PYG{p}{),} seasonal\PYG{o}{=}\PYG{k+kt}{list}\PYG{p}{(}order\PYG{o}{=}\PYG{k+kt}{c}\PYG{p}{(}\PYG{l+m}{1}\PYG{p}{,}\PYG{l+m}{1}\PYG{p}{,}\PYG{l+m}{0}\PYG{p}{),} period\PYG{o}{=}\PYG{l+m}{41}\PYG{p}{))}
+ARIMA.pred \PYG{o}{\PYGZlt{}\PYGZhy{}} predict\PYG{p}{(}ARIMA\PYG{p}{,} n.ahead\PYG{o}{=}PREDICTION\PYGZus{}LENGTH\PYG{p}{)}
+error \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{k+kp}{abs}\PYG{p}{((}\PYG{k+kt}{c}\PYG{p}{(}test\PYG{p}{)}\PYG{o}{\PYGZhy{}}ARIMA.pred\PYG{o}{\PYGZdl{}}pred\PYG{p}{))}
+error \PYG{o}{\PYGZlt{}\PYGZhy{}} \PYG{p}{((}error\PYG{o}{/}\PYG{k+kp}{max}\PYG{p}{(}error\PYG{p}{))}\PYG{o}{*}\PYG{p}{(}\PYG{k+kp}{min}\PYG{p}{(}\PYG{k+kp}{log}\PYG{p}{(}test\PYG{p}{))}\PYG{o}{/}\PYG{k+kp}{max}\PYG{p}{(}\PYG{k+kp}{log}\PYG{p}{(}test\PYG{p}{))))}\PYG{o}{+}\PYG{k+kp}{min}\PYG{p}{(}\PYG{k+kp}{log}\PYG{p}{(}test\PYG{p}{))}
+plot\PYG{p}{(}\PYG{k+kp}{log}\PYG{p}{(}test\PYG{p}{),} lwd\PYG{o}{=}\PYG{l+m}{2}\PYG{p}{,} xlab\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Time (Days)\PYGZdq{}}\PYG{p}{,} ylab\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Log of VWAP\PYGZdq{}}\PYG{p}{,} main\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Log of Bitcoin VWAP\PYGZbs{}nPrediction compared to Actual Prices\PYGZdq{}}\PYG{p}{)}
+lines\PYG{p}{(}x\PYG{o}{=}\PYG{k+kp}{seq}\PYG{p}{(}along\PYG{o}{=}test\PYG{p}{),} \PYG{k+kp}{log}\PYG{p}{(}ARIMA.pred\PYG{o}{\PYGZdl{}}pred\PYG{p}{),} col\PYG{o}{=}\PYG{l+s}{\PYGZdq{}blue\PYGZdq{}}\PYG{p}{,} lwd\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{)}
+plot\PYG{p}{(}\PYG{k+kp}{log}\PYG{p}{(}ts\PYG{p}{(}df2\PYG{p}{[}\PYG{l+m}{8}\PYG{p}{])),} type\PYG{o}{=}\PYG{l+s}{\PYGZsq{}l\PYGZsq{}}\PYG{p}{,} main\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Log of Bitcoin VWAP with ARIMA prediction\PYGZdq{}}\PYG{p}{,} ylab\PYG{o}{=}\PYG{l+s}{\PYGZdq{}Log of VWAP\PYGZdq{}}\PYG{p}{)}
+lines\PYG{p}{(}x\PYG{o}{=}\PYG{k+kp}{seq}\PYG{p}{(}\PYG{k+kp}{length}\PYG{p}{(}series\PYG{p}{)}\PYG{l+m}{+1}\PYG{p}{,} \PYG{k+kp}{length}\PYG{p}{(}series\PYG{p}{)}\PYG{o}{+}\PYG{k+kp}{length}\PYG{p}{(}ARIMA.pred\PYG{o}{\PYGZdl{}}pred\PYG{p}{)),} y\PYG{o}{=}\PYG{k+kp}{log}\PYG{p}{(}ARIMA.pred\PYG{o}{\PYGZdl{}}pred\PYG{p}{),} col\PYG{o}{=}\PYG{l+s}{\PYGZdq{}red\PYGZdq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} long}
+\PYG{c+c1}{\PYGZsh{}errors \PYGZlt{}\PYGZhy{} array(dim=c(4,30))}
+\PYG{c+c1}{\PYGZsh{}for(i in 1:4) \PYGZob{}}
+\PYG{c+c1}{\PYGZsh{}  df \PYGZlt{}\PYGZhy{} fromJSON(get.polo.url(start=i,end=i))}
+\PYG{c+c1}{\PYGZsh{}  pred\PYGZus{}df \PYGZlt{}\PYGZhy{} fromJSON(get.polo.url(start=i,end=i,train=F))}
+\PYG{c+c1}{\PYGZsh{}  train \PYGZlt{}\PYGZhy{} ts(df[8])}
+\PYG{c+c1}{\PYGZsh{}  test \PYGZlt{}\PYGZhy{} ts(pred\PYGZus{}df[8])}
+\PYG{c+c1}{\PYGZsh{}  for(j in 9:38) \PYGZob{}}
+\PYG{c+c1}{\PYGZsh{}    ARIMA \PYGZlt{}\PYGZhy{} arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=j))}
+\PYG{c+c1}{\PYGZsh{}    ARIMA.pred \PYGZlt{}\PYGZhy{} predict(ARIMA, n.ahead=PREDICTION\PYGZus{}LENGTH)}
+\PYG{c+c1}{\PYGZsh{}    error \PYGZlt{}\PYGZhy{} sum(abs(c(test)\PYGZhy{}ARIMA.pred\PYGZdl{}pred))}
+\PYG{c+c1}{\PYGZsh{}    errors[i,(j\PYGZhy{}21)] \PYGZlt{}\PYGZhy{} error}
+\PYG{c+c1}{\PYGZsh{}  \PYGZcb{}}
+\PYG{c+c1}{\PYGZsh{}\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZsh{} install.packages(\PYGZsq{}rnn\PYGZsq{})}
+\PYG{c+c1}{\PYGZsh{}library(rnn)}
+\PYG{c+c1}{\PYGZsh{}TRAIN\PYGZus{}TIME = df[1]}
+\PYG{c+c1}{\PYGZsh{}TRAIN\PYGZus{}VOLUME = df[6]}
+\PYG{c+c1}{\PYGZsh{}TRAIN\PYGZus{}PRICE = df[4]}
+\PYG{c+c1}{\PYGZsh{}TEST\PYGZus{}TIME = pred\PYGZus{}df[1]}
+\PYG{c+c1}{\PYGZsh{}TEST\PYGZus{}VOLUME = pred\PYGZus{}df[6]}
+\PYG{c+c1}{\PYGZsh{}TEST\PYGZus{}PRICE = pred\PYGZus{}df[4]}
+\PYGZbs{}end \PYG{p}{\PYGZob{}}minted\PYG{p}{\PYGZcb{}}
+
+\PYG{o}{\PYGZpc{} \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{o}{\PYGZpc{}} Python Codes
+\PYGZpc{} \PYG{o}{\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYGZbs{}subsection\PYG{p}{\PYGZob{}}\PYGZbs{}textit\PYG{p}{\PYGZob{}}k\PYG{p}{\PYGZcb{}} and \PYGZbs{}textit\PYG{p}{\PYGZob{}}k\PYG{p}{\PYGZcb{}}\PYG{o}{++} means clustering\PYG{p}{\PYGZcb{}}
+\PYGZbs{}begin\PYG{p}{\PYGZob{}}minted\PYG{p}{\PYGZcb{}\PYGZob{}}python\PYG{p}{\PYGZcb{}}
+import numpy as np
+import scipy
+import matplotlib.pyplot as plt
+
+
+class Kmeans\PYG{p}{(}object\PYG{p}{)}\PYG{o}{:}
+    def \PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}\PYG{p}{(}self\PYG{p}{,} data\PYGZus{}as\PYGZus{}txt\PYG{p}{,} k\PYG{p}{,} seed\PYG{o}{=}None\PYG{p}{)}\PYG{o}{:}
+        self.k \PYG{o}{=} k
+        self.data\PYGZus{}as\PYGZus{}txt \PYG{o}{=} data\PYGZus{}as\PYGZus{}txt
+        self.seed \PYG{o}{=} seed
+
+    def load\PYGZus{}dataset\PYG{p}{(}self\PYG{p}{,} name\PYG{p}{)}\PYG{o}{:}
+        \PYG{k+kr}{return} np.loadtxt\PYG{p}{(}name\PYG{p}{)}
+
+    def euclidian\PYG{p}{(}slef\PYG{p}{,} a\PYG{p}{,} b\PYG{p}{)}\PYG{o}{:}
+        \PYG{k+kr}{return} np.linalg.norm\PYG{p}{(}a\PYG{o}{\PYGZhy{}}b\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} magnitude between two points}
+
+    def plot\PYG{p}{(}self\PYG{p}{,} dataset\PYG{p}{,} history\PYGZus{}centroids\PYG{p}{,} belongs\PYGZus{}to\PYG{p}{)}\PYG{o}{:}
+        colors \PYG{o}{=} \PYG{p}{[}\PYG{l+s}{\PYGZsq{}r\PYGZsq{}}\PYG{p}{,} \PYG{l+s}{\PYGZsq{}g\PYGZsq{}}\PYG{p}{,} \PYG{l+s}{\PYGZsq{}y\PYGZsq{}}\PYG{p}{,} \PYG{l+s}{\PYGZsq{}c\PYGZsq{}}\PYG{p}{]}
+
+        fig\PYG{p}{,} ax \PYG{o}{=} plt.subplots\PYG{p}{()}
+
+
+        \PYG{k+kr}{for} index \PYG{k+kr}{in} \PYG{k+kp}{range}\PYG{p}{(}dataset.shape\PYG{p}{[}\PYG{l+m}{0}\PYG{p}{])}\PYG{o}{:}
+            instances\PYGZus{}close \PYG{o}{=} \PYG{p}{[}i \PYG{k+kr}{for} i \PYG{k+kr}{in} \PYG{k+kp}{range}\PYG{p}{(}len\PYG{p}{(}belongs\PYGZus{}to\PYG{p}{))} \PYG{k+kr}{if} belongs\PYGZus{}to\PYG{p}{[}i\PYG{p}{]} \PYG{o}{==} index\PYG{p}{]}
+            \PYG{k+kr}{for} instance\PYGZus{}index \PYG{k+kr}{in} instances\PYGZus{}close\PYG{o}{:}
+                ax.plot\PYG{p}{(}dataset\PYG{p}{[}instance\PYGZus{}index\PYG{p}{][}\PYG{l+m}{0}\PYG{p}{],} dataset\PYG{p}{[}instance\PYGZus{}index\PYG{p}{][}\PYG{l+m}{1}\PYG{p}{],} \PYG{p}{(}colors\PYG{p}{[}index\PYG{p}{]} \PYG{o}{+} \PYG{l+s}{\PYGZsq{}o\PYGZsq{}}\PYG{p}{))}
+
+        history\PYGZus{}points \PYG{o}{=} \PYG{p}{[]}
+        \PYG{k+kr}{for} index\PYG{p}{,} centroids \PYG{k+kr}{in} enumerate\PYG{p}{(}history\PYGZus{}centroids\PYG{p}{)}\PYG{o}{:}
+            \PYG{k+kr}{for} inner\PYG{p}{,} item \PYG{k+kr}{in} enumerate\PYG{p}{(}centroids\PYG{p}{)}\PYG{o}{:}
+                \PYG{k+kr}{if} index \PYG{o}{==} \PYG{l+m}{0}\PYG{o}{:}
+                    history\PYGZus{}points.append\PYG{p}{(}ax.plot\PYG{p}{(}item\PYG{p}{[}\PYG{l+m}{0}\PYG{p}{],} item\PYG{p}{[}\PYG{l+m}{1}\PYG{p}{],} \PYG{l+s}{\PYGZsq{}bo\PYGZsq{}}\PYG{p}{)[}\PYG{l+m}{0}\PYG{p}{])}
+                \PYG{k+kp}{else}\PYG{o}{:}
+                    history\PYGZus{}points\PYG{p}{[}inner\PYG{p}{]}\PYG{l+m}{.}set\PYGZus{}data\PYG{p}{(}item\PYG{p}{[}\PYG{l+m}{0}\PYG{p}{],} item\PYG{p}{[}\PYG{l+m}{1}\PYG{p}{])}
+                    plt.pause\PYG{p}{(}\PYG{l+m}{0.8}\PYG{p}{)}
+
+
+    \PYG{l+s}{\PYGZsq{}\PYGZsq{}\PYGZsq{} num\PYGZus{}instances: number of rows in data (i.e how many points)}
+\PYG{l+s}{        dataset: the data}
+\PYG{l+s}{        return: list of k randomly selected data points in a list: [[x1 y1] [x2 y2] ... [xk yk]]}
+\PYG{l+s}{    \PYGZsq{}\PYGZsq{}\PYGZsq{}}
+    def initialization\PYG{p}{(}self\PYG{p}{,} dataset\PYG{p}{)}\PYG{o}{:}
+
+        \PYG{k+kr}{if} self.seed is not None\PYG{o}{:}
+            np.random.seed\PYG{p}{(}self.seed\PYG{p}{)}
+
+        num\PYGZus{}instances\PYG{p}{,} num\PYGZus{}features \PYG{o}{=} dataset.shape  \PYG{c+c1}{\PYGZsh{} 45, 2}
+        \PYG{k+kr}{return} dataset\PYG{p}{[}np.random.choice\PYG{p}{(}num\PYGZus{}instances \PYG{o}{\PYGZhy{}} \PYG{l+m}{1}\PYG{p}{,} self.k\PYG{p}{,} replace\PYG{o}{=}False\PYG{p}{)]}
+        \PYG{c+c1}{\PYGZsh{}return dataset[np.random.randint(0, num\PYGZus{}instances \PYGZhy{} 1, size = self.k)]}
+
+    def kmeans\PYG{p}{(}self\PYG{p}{,} k\PYG{p}{,} epsilon\PYG{o}{=}\PYG{l+m}{0}\PYG{p}{,} distance\PYG{o}{=}\PYG{l+s}{\PYGZsq{}euclidian\PYGZsq{}}\PYG{p}{)}\PYG{o}{:}
+        history\PYGZus{}centroids \PYG{o}{=} \PYG{p}{[]}
+        \PYG{k+kr}{if} distance \PYG{o}{==} \PYG{l+s}{\PYGZsq{}euclidian\PYGZsq{}}\PYG{o}{:}
+            dist\PYGZus{}method \PYG{o}{=} self.euclidian
+        dataset \PYG{o}{=} self.load\PYGZus{}dataset\PYG{p}{(}self.data\PYGZus{}as\PYGZus{}txt\PYG{p}{)}
+        \PYG{c+c1}{\PYGZsh{} dataset = dataset[:, 0:dataset.shape[1] \PYGZhy{} 1]}
+        num\PYGZus{}instances\PYG{p}{,} num\PYGZus{}features \PYG{o}{=} dataset.shape  \PYG{c+c1}{\PYGZsh{} 45, 2}
+
+
+        \PYG{c+c1}{\PYGZsh{}prototypes = dataset[np.random.randint(0, num\PYGZus{}instances \PYGZhy{} 1, size=k)]}
+        prototypes \PYG{o}{=} self.initialization\PYG{p}{(}dataset\PYG{p}{)}
+        history\PYGZus{}centroids.append\PYG{p}{(}prototypes\PYG{p}{)}
+        prototypes\PYGZus{}old \PYG{o}{=} np.zeros\PYG{p}{(}prototypes.shape\PYG{p}{)}
+        belongs\PYGZus{}to \PYG{o}{=} np.zeros\PYG{p}{((}num\PYGZus{}instances\PYG{p}{,} \PYG{l+m}{1}\PYG{p}{))}
+        norm \PYG{o}{=} dist\PYGZus{}method\PYG{p}{(}prototypes\PYG{p}{,} prototypes\PYGZus{}old\PYG{p}{)}
+        iteration \PYG{o}{=} \PYG{l+m}{0}
+
+        \PYG{k+kr}{while} norm \PYG{o}{\PYGZgt{}} epsilon\PYG{o}{:}
+            iteration \PYG{o}{+=} \PYG{l+m}{1}
+            norm \PYG{o}{=} dist\PYGZus{}method\PYG{p}{(}prototypes\PYG{p}{,} prototypes\PYGZus{}old\PYG{p}{)}
+            prototypes\PYGZus{}old \PYG{o}{=} prototypes
+            \PYG{k+kr}{for} index\PYGZus{}instance\PYG{p}{,} instance \PYG{k+kr}{in} enumerate\PYG{p}{(}dataset\PYG{p}{)}\PYG{o}{:}
+                dist\PYGZus{}vec \PYG{o}{=} np.zeros\PYG{p}{((}k\PYG{p}{,} \PYG{l+m}{1}\PYG{p}{))}
+                \PYG{k+kr}{for} index\PYGZus{}prototype\PYG{p}{,} prototype \PYG{k+kr}{in} enumerate\PYG{p}{(}prototypes\PYG{p}{)}\PYG{o}{:}
+                    dist\PYGZus{}vec\PYG{p}{[}index\PYGZus{}prototype\PYG{p}{]} \PYG{o}{=} dist\PYGZus{}method\PYG{p}{(}prototype\PYG{p}{,}
+                                                            instance\PYG{p}{)}
+
+                belongs\PYGZus{}to\PYG{p}{[}index\PYGZus{}instance\PYG{p}{,} \PYG{l+m}{0}\PYG{p}{]} \PYG{o}{=} np.argmin\PYG{p}{(}dist\PYGZus{}vec\PYG{p}{)}
+
+            tmp\PYGZus{}prototypes \PYG{o}{=} np.zeros\PYG{p}{((}k\PYG{p}{,} num\PYGZus{}features\PYG{p}{))}
+
+            \PYG{k+kr}{for} index \PYG{k+kr}{in} \PYG{k+kp}{range}\PYG{p}{(}len\PYG{p}{(}prototypes\PYG{p}{))}\PYG{o}{:}
+                instances\PYGZus{}close \PYG{o}{=} \PYG{p}{[}i \PYG{k+kr}{for} i \PYG{k+kr}{in} \PYG{k+kp}{range}\PYG{p}{(}len\PYG{p}{(}belongs\PYGZus{}to\PYG{p}{))} \PYG{k+kr}{if} belongs\PYGZus{}to\PYG{p}{[}i\PYG{p}{]} \PYG{o}{==} index\PYG{p}{]}
+                prototype \PYG{o}{=} np.mean\PYG{p}{(}dataset\PYG{p}{[}instances\PYGZus{}close\PYG{p}{],} axis\PYG{o}{=}\PYG{l+m}{0}\PYG{p}{)}
+                \PYG{c+c1}{\PYGZsh{} prototype = dataset[np.random.randint(0, num\PYGZus{}instances, size=1)[0]]}
+
+                tmp\PYGZus{}prototypes\PYG{p}{[}index\PYG{p}{,} \PYG{o}{:}\PYG{p}{]} \PYG{o}{=} prototype
+
+            prototypes \PYG{o}{=} tmp\PYGZus{}prototypes
+
+            history\PYGZus{}centroids.append\PYG{p}{(}tmp\PYGZus{}prototypes\PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{}self.plot(dataset, history\PYGZus{}centroids, belongs\PYGZus{}to)}
+
+        \PYG{k+kr}{return} prototypes\PYG{p}{,} history\PYGZus{}centroids\PYG{p}{,} belongs\PYGZus{}to
+
+    def execute\PYG{p}{(}self\PYG{p}{,} graph\PYG{o}{=}True\PYG{p}{)}\PYG{o}{:}
+        dataset \PYG{o}{=} self.load\PYGZus{}dataset\PYG{p}{(}self.data\PYGZus{}as\PYGZus{}txt\PYG{p}{)}
+        centroids\PYG{p}{,} history\PYGZus{}centroids\PYG{p}{,} belongs\PYGZus{}to \PYG{o}{=} self.kmeans\PYG{p}{(}self.k\PYG{p}{)}
+        \PYG{k+kr}{if}\PYG{p}{(}graph\PYG{p}{)}\PYG{o}{:}
+            self.plot\PYG{p}{(}dataset\PYG{p}{,} history\PYGZus{}centroids\PYG{p}{,} belongs\PYGZus{}to\PYG{p}{)}
+
+        \PYG{k+kr}{return} centroids
+
+
+class Kpp\PYG{p}{(}Kmeans\PYG{p}{)}\PYG{o}{:}
+
+    def initialization\PYG{p}{(}self\PYG{p}{,} dataset\PYG{p}{)}\PYG{o}{:}
+        X \PYG{o}{=} dataset
+        \PYG{k+kp}{print}\PYG{p}{(}X\PYG{p}{)}
+
+        C \PYG{o}{=} \PYG{p}{[}X\PYG{p}{[}\PYG{l+m}{0}\PYG{p}{]]}
+        \PYG{k+kp}{print}\PYG{p}{(}C\PYG{p}{)}
+        \PYG{k+kr}{for} k \PYG{k+kr}{in} \PYG{k+kp}{range}\PYG{p}{(}\PYG{l+m}{1}\PYG{p}{,} self.k\PYG{p}{)}\PYG{o}{:}
+            \PYG{c+c1}{\PYGZsh{}  find shortest distantce squared to center}
+            D2 \PYG{o}{=} scipy.array\PYG{p}{([}\PYG{k+kp}{min}\PYG{p}{([}scipy.inner\PYG{p}{(}\PYG{k+kt}{c}\PYG{o}{\PYGZhy{}}x\PYG{p}{,} \PYG{k+kt}{c}\PYG{o}{\PYGZhy{}}x\PYG{p}{)} \PYG{k+kr}{for} \PYG{k+kt}{c} \PYG{k+kr}{in} C\PYG{p}{])} \PYG{k+kr}{for} x \PYG{k+kr}{in} X\PYG{p}{])}
+            probs \PYG{o}{=} D2\PYG{o}{/}D2.sum\PYG{p}{()}
+            cumprobs \PYG{o}{=} probs.cumsum\PYG{p}{()}
+            \PYG{k+kp}{print}\PYG{p}{(}cumprobs\PYG{p}{)}
+            r \PYG{o}{=} scipy.rand\PYG{p}{()}
+            \PYG{k+kr}{for} j\PYG{p}{,} p \PYG{k+kr}{in} enumerate\PYG{p}{(}cumprobs\PYG{p}{)}\PYG{o}{:}
+                \PYG{k+kr}{if} r \PYG{o}{\PYGZlt{}} p\PYG{o}{:}
+                    i \PYG{o}{=} j
+                    \PYG{k+kr}{break}
+            C.append\PYG{p}{(}X\PYG{p}{[}i\PYG{p}{])}
+        \PYG{k+kr}{return} np.array\PYG{p}{(}C\PYG{p}{)}
+
+\PYG{k+kr}{if} \PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{} \PYG{o}{==} \PYG{l+s}{\PYGZdq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZdq{}}\PYG{o}{:}
+    kpp\PYGZus{}means \PYG{o}{=} Kpp\PYG{p}{(}\PYG{l+s}{\PYGZdq{}pts2.txt\PYGZdq{}}\PYG{p}{,} \PYG{l+m}{4}\PYG{p}{)}
+    \PYG{c+c1}{\PYGZsh{}centroids = kpp\PYGZus{}means.execute(graph=True)}
+
+    kmeans \PYG{o}{=} Kmeans\PYG{p}{(}\PYG{l+s}{\PYGZdq{}pts2.txt\PYGZdq{}}\PYG{p}{,} \PYG{l+m}{4}\PYG{p}{)}
+    \PYG{c+c1}{\PYGZsh{}centroids = kmeans.execute(graph=True)}
+
+    all\PYGZus{}kmeans\PYGZus{}centroids \PYG{o}{=} \PYG{p}{[]}
+    all\PYGZus{}kpp\PYGZus{}means\PYGZus{}centroids \PYG{o}{=} \PYG{p}{[]}
+
+    \PYG{k+kr}{for} \PYGZus{} \PYG{k+kr}{in} \PYG{k+kp}{range}\PYG{p}{(}\PYG{l+m}{1}\PYG{p}{,} \PYG{l+m}{1000}\PYG{p}{)}\PYG{o}{:}
+        kmeans\PYGZus{}centroids \PYG{o}{=} kmeans.execute\PYG{p}{(}graph\PYG{o}{=}False\PYG{p}{)}
+        all\PYGZus{}kmeans\PYGZus{}centroids.append\PYG{p}{(}kmeans\PYGZus{}centroids\PYG{p}{)}
+
+    \PYG{k+kr}{for} \PYGZus{} \PYG{k+kr}{in} \PYG{k+kp}{range}\PYG{p}{(}\PYG{l+m}{1}\PYG{p}{,} \PYG{l+m}{1000}\PYG{p}{)}\PYG{o}{:}
+        kpp\PYGZus{}centroids \PYG{o}{=} kpp\PYGZus{}means.execute\PYG{p}{(}graph\PYG{o}{=}False\PYG{p}{)}
+        all\PYGZus{}kpp\PYGZus{}means\PYGZus{}centroids.append\PYG{p}{(}kpp\PYGZus{}centroids\PYG{p}{)}
+
+    with \PYG{k+kp}{open}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}KmeansCentroids.txt\PYGZdq{}}\PYG{p}{,} mode\PYG{o}{=}\PYG{l+s}{\PYGZsq{}w\PYGZsq{}}\PYG{p}{)} as File\PYG{o}{:}
+        \PYG{k+kr}{for} i \PYG{k+kr}{in} all\PYGZus{}kmeans\PYGZus{}centroids\PYG{o}{:}
+            \PYG{k+kr}{for} j \PYG{k+kr}{in} i\PYG{o}{:}
+                File.write\PYG{p}{(}\PYG{l+s}{\PYGZdq{}\PYGZob{}\PYGZcb{} \PYGZob{}\PYGZcb{} \PYGZdq{}}\PYG{l+m}{.}\PYG{k+kp}{format}\PYG{p}{(}j\PYG{p}{[}\PYG{l+m}{0}\PYG{p}{],} j\PYG{p}{[}\PYG{l+m}{1}\PYG{p}{]))}
+            File.write\PYG{p}{(}\PYG{l+s}{\PYGZdq{}\PYGZbs{}n\PYGZdq{}}\PYG{p}{)}
+
+    with \PYG{k+kp}{open}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}KppCentroids.txt\PYGZdq{}}\PYG{p}{,} mode\PYG{o}{=}\PYG{l+s}{\PYGZsq{}w\PYGZsq{}}\PYG{p}{)} as File\PYG{o}{:}
+        \PYG{k+kr}{for} i \PYG{k+kr}{in} all\PYGZus{}kpp\PYGZus{}means\PYGZus{}centroids\PYG{o}{:}
+            \PYG{k+kr}{for} j \PYG{k+kr}{in} i\PYG{o}{:}
+                File.write\PYG{p}{(}\PYG{l+s}{\PYGZdq{}\PYGZob{}\PYGZcb{} \PYGZob{}\PYGZcb{} \PYGZdq{}}\PYG{l+m}{.}\PYG{k+kp}{format}\PYG{p}{(}j\PYG{p}{[}\PYG{l+m}{0}\PYG{p}{],} j\PYG{p}{[}\PYG{l+m}{1}\PYG{p}{]))}
+            File.write\PYG{p}{(}\PYG{l+s}{\PYGZdq{}\PYGZbs{}n\PYGZdq{}}\PYG{p}{)}
+\end{Verbatim}

@@ -117,13 +117,13 @@ lines(x=seq(length(series)+1, length(series)+length(model.prediction)), y=log(mo
 
 ```{r, echo=FALSE}
 # long
-errors <- array(dim=c(8,79))
-for(j in seq(1,40,0.5)) {
-  for(i in 1:8) {
-    df <- fromJSON(get.polo.url(start=i,end=i))
-    pred_df <- fromJSON(get.polo.url(start=i,end=i,train=F))
-    train <- ts(df[8])
-    test <- ts(pred_df[8])
+errors <- array(dim=c(4,40))
+for(i in 1:4) {
+  df <- fromJSON(get.polo.url(start=i,end=i))
+  pred_df <- fromJSON(get.polo.url(start=i,end=i,train=F))
+  train <- ts(df[8])
+  test <- ts(pred_df[8])
+  for(j in 1:40) {
     ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=j))
     ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
     error <- sum(abs(c(test)-ARIMA.pred$pred))

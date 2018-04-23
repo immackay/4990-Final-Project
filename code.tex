@@ -1,0 +1,315 @@
+\section {Appendix}
+% ------
+% R Code
+% ------
+\subsection{Bitcoin - Time Series Linear Regression}
+\begin{minted}{r}
+require(jsonlite)
+require(plotly)
+
+##############################################
+# get.polo.url()
+#
+#   Creates a poloniex api call url
+#   Either for training (train=T) or testing (train=F)
+#   Testing end is 90 days past training end
+#
+# @param start, default=1
+#   The start of your training dataset
+# @param end, default=1
+#   The end of your training dataset
+# @param pair, default="USDT_BTC"
+#   Token pairs, taken from the market list on https://poloniex.com/
+# @param period, default=86400
+#   Period of dataset in seconds, default=1 day
+# @param train, default=TRUE
+#   Whether you want the training or testing url
+# @returns string
+#   API URL for accessing poloniex data
+##############################################
+get.polo.url <- function(start=1, end=1, pair="USDT_BTC", period=86400, train=TRUE) {
+  # Returns OHLC + Volume
+  POLO_URL <- "https://poloniex.com/public?command=returnChartData&currencyPair=%s&start=%d&end=%d&period=%i"
+  # Returns tick by tick trades (max 50000)
+  # POLO_URL2 <- "https://poloniex.com/public?command=returnTradeHistory&currencyPair=%s&start=%d&end=%d"
+
+  START <- as.numeric(as.POSIXct(sprintf("2013-%d-01", start)), tz="GMT")
+  END <- as.numeric(as.POSIXct(sprintf("2017-%d-01", end)), tz="GMT")
+  PRED_START <- as.numeric(as.POSIXct(sprintf("2017-%d-01", end)), tz="GMT")
+  PRED_END <- as.numeric(as.POSIXct(sprintf("2017-%d-01", end)), tz="GMT")+7776000
+  # PERIOD_VALUES <- c(300, 7200, 86400)
+  # 5min, 2hours, 24hours
+  PREDICTION_LENGTH <- 90*86400/PERIOD # days
+  if(train) {
+    return(sprintf(POLO_URL, pair, START, END, period))
+  }
+  else {
+    return(sprintf(POLO_URL, pair, PRED_START, PRED_END, period))
+  }
+}
+
+# -------------------------------
+# Data Creation and Visualization
+# -------------------------------
+df <- fromJSON(get.polo.url(start=1, end=1))
+pred_df <- fromJSON(get.polo.url(start=1,end=1,train=F))
+train <- ts(df[8])
+test <- ts(pred_df[8])
+
+plot(log(c(train, test)), type="l", xlab="Time (Days)", ylab="Log of Volume Weighted Average Price", main="VWAP vs Time")
+lines(x=seq(length(train)+1, length(train)+length(test)), y=log(test), col="red")
+
+# -----------
+# Differences
+# -----------
+plot(diff(train), ylab="Lagged Difference of VWAP", xlab="Time (Days)", main="diff(VWAP) vs Time")
+abline(h=0)
+
+# --------------
+# ACFs and PACFs
+# --------------
+acf(diff(train), lag.max=50, main="ACF of diff(train)")
+pacf(diff(train), lag.max=50, main="PACF of diff(train)")
+
+# --------------------
+# Model and Prediction
+# --------------------
+ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,0), period=41))
+ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
+error <- abs((c(test)-ARIMA.pred$pred))
+error <- ((error/max(error))*(min(log(test))/max(log(test))))+min(log(test))
+plot(log(test), lwd=2, xlab="Time (Days)", ylab="Log of VWAP", main="Log of Bitcoin VWAP\nPrediction compared to Actual Prices")
+lines(x=seq(along=test), log(ARIMA.pred$pred), col="blue", lwd=1)
+plot(log(ts(df2[8])), type='l', main="Log of Bitcoin VWAP with ARIMA prediction", ylab="Log of VWAP")
+lines(x=seq(length(series)+1, length(series)+length(ARIMA.pred$pred)), y=log(ARIMA.pred$pred), col="red")
+
+# long
+#errors <- array(dim=c(4,30))
+#for(i in 1:4) {
+#  df <- fromJSON(get.polo.url(start=i,end=i))
+#  pred_df <- fromJSON(get.polo.url(start=i,end=i,train=F))
+#  train <- ts(df[8])
+#  test <- ts(pred_df[8])
+#  for(j in 9:38) {
+#    ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=j))
+#    ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
+#    error <- sum(abs(c(test)-ARIMA.pred$pred))
+#    errors[i,(j-21)] <- error
+#  }
+#}
+
+# install.packages('rnn')
+#library(rnn)
+#TRAIN_TIME = df[1]
+#TRAIN_VOLUME = df[6]
+#TRAIN_PRICE = df[4]
+#TEST_TIME = pred_df[1]
+#TEST_VOLUME = pred_df[6]
+#TEST_PRICE = pred_df[4]
+\end {minted}
+
+% ------------
+% Python Codes
+% ------------
+\subsection{\textit{k} and \textit{k}++ means clustering}
+\begin{minted}{python}
+import numpy as np
+import scipy
+import matplotlib.pyplot as plt
+
+
+class Kmeans(object):
+    def __init__(self, data_as_txt, k, seed=None):
+        self.k = k
+        self.data_as_txt = data_as_txt
+        self.seed = seed
+
+    def load_dataset(self, name):
+        return np.loadtxt(name)
+
+    def euclidian(slef, a, b):
+        return np.linalg.norm(a-b)  # magnitude between two points
+
+    def plot(self, dataset, history_centroids, belongs_to):
+        colors = ['r', 'g', 'y', 'c']
+
+        fig, ax = plt.subplots()
+
+
+        for index in range(dataset.shape[0]):
+            instances_close = [i for i in range(len(belongs_to)) if belongs_to[i] == index]
+            for instance_index in instances_close:
+                ax.plot(dataset[instance_index][0], dataset[instance_index][1], (colors[index] + 'o'))
+
+        history_points = []
+        for index, centroids in enumerate(history_centroids):
+            for inner, item in enumerate(centroids):
+                if index == 0:
+                    history_points.append(ax.plot(item[0], item[1], 'bo')[0])
+                else:
+                    history_points[inner].set_data(item[0], item[1])
+                    plt.pause(0.8)
+
+
+    ''' num_instances: number of rows in data (i.e how many points)
+        dataset: the data
+        return: list of k randomly selected data points in a list: [[x1 y1] [x2 y2] ... [xk yk]]
+    '''
+    def initialization(self, dataset):
+
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        num_instances, num_features = dataset.shape  # 45, 2
+        return dataset[np.random.choice(num_instances - 1, self.k, replace=False)]
+        #return dataset[np.random.randint(0, num_instances - 1, size = self.k)]
+
+    def kmeans(self, k, epsilon=0, distance='euclidian'):
+        history_centroids = []
+        if distance == 'euclidian':
+            dist_method = self.euclidian
+        dataset = self.load_dataset(self.data_as_txt)
+        # dataset = dataset[:, 0:dataset.shape[1] - 1]
+        num_instances, num_features = dataset.shape  # 45, 2
+
+
+        #prototypes = dataset[np.random.randint(0, num_instances - 1, size=k)]
+        prototypes = self.initialization(dataset)
+        history_centroids.append(prototypes)
+        prototypes_old = np.zeros(prototypes.shape)
+        belongs_to = np.zeros((num_instances, 1))
+        norm = dist_method(prototypes, prototypes_old)
+        iteration = 0
+
+        while norm > epsilon:
+            iteration += 1
+            norm = dist_method(prototypes, prototypes_old)
+            prototypes_old = prototypes
+            for index_instance, instance in enumerate(dataset):
+                dist_vec = np.zeros((k, 1))
+                for index_prototype, prototype in enumerate(prototypes):
+                    dist_vec[index_prototype] = dist_method(prototype,
+                                                            instance)
+
+                belongs_to[index_instance, 0] = np.argmin(dist_vec)
+
+            tmp_prototypes = np.zeros((k, num_features))
+
+            for index in range(len(prototypes)):
+                instances_close = [i for i in range(len(belongs_to)) if belongs_to[i] == index]
+                prototype = np.mean(dataset[instances_close], axis=0)
+                # prototype = dataset[np.random.randint(0, num_instances, size=1)[0]]
+
+                tmp_prototypes[index, :] = prototype
+
+            prototypes = tmp_prototypes
+
+            history_centroids.append(tmp_prototypes)
+
+        #self.plot(dataset, history_centroids, belongs_to)
+
+        return prototypes, history_centroids, belongs_to
+
+    def execute(self, graph=True):
+        dataset = self.load_dataset(self.data_as_txt)
+        centroids, history_centroids, belongs_to = self.kmeans(self.k)
+        if(graph):
+            self.plot(dataset, history_centroids, belongs_to)
+
+        return centroids
+
+
+class Kpp(Kmeans):
+
+    def initialization(self, dataset):
+        X = dataset
+        print(X)
+
+        C = [X[0]]
+        print(C)
+        for k in range(1, self.k):
+            #  find shortest distantce squared to center
+            D2 = scipy.array([min([scipy.inner(c-x, c-x) for c in C]) for x in X])
+            probs = D2/D2.sum()
+            cumprobs = probs.cumsum()
+            print(cumprobs)
+            r = scipy.rand()
+            for j, p in enumerate(cumprobs):
+                if r < p:
+                    i = j
+                    break
+            C.append(X[i])
+        return np.array(C)
+
+if __name__ == "__main__":
+    kpp_means = Kpp("pts2.txt", 4)
+    #centroids = kpp_means.execute(graph=True)
+
+    kmeans = Kmeans("pts2.txt", 4)
+    #centroids = kmeans.execute(graph=True)
+
+    all_kmeans_centroids = []
+    all_kpp_means_centroids = []
+
+    for _ in range(1, 1000):
+        kmeans_centroids = kmeans.execute(graph=False)
+        all_kmeans_centroids.append(kmeans_centroids)
+
+    for _ in range(1, 1000):
+        kpp_centroids = kpp_means.execute(graph=False)
+        all_kpp_means_centroids.append(kpp_centroids)
+
+    with open("KmeansCentroids.txt", mode='w') as File:
+        for i in all_kmeans_centroids:
+            for j in i:
+                File.write("{} {} ".format(j[0], j[1]))
+            File.write("\n")
+
+    with open("KppCentroids.txt", mode='w') as File:
+        for i in all_kpp_means_centroids:
+            for j in i:
+                File.write("{} {} ".format(j[0], j[1]))
+            File.write("\n")
+\end{minted}
+
+% ------
+% R code
+% ------
+\subsection {Centroid Plots and Distribution of SSE}
+\begin{minted}{r}
+# --------------
+# Plot centroids
+# --------------
+points <- read.table("pts2.txt")
+kmeansCentroids <- read.csv("KmeansCentroids.txt", sep=" ", header=FALSE, na.strings="nan")[1:8]
+kppCentroids <- read.csv("KppCentroids.txt", sep=" ", header=FALSE, na.strings="nan")[1:8]
+
+plot(points, col=rgb(0,0,0,0.5))
+for(i in 1:4) {
+  points(x=kmeansCentroids[,1*i], y=kmeansCentroids[,2*i], pch=21, col=i+1, bg=rgb(0.1,0.1,0.1,0.1))
+}
+plot(points, col=rgb(0,0,0,0.5))
+for(i in 1:4) {
+  points(x=kppCentroids[,1*i], y=kppCentroids[,2*i], pch=25, col=i+1, bg=rgb(0.1,0.1,0.1,0.1))
+
+# ------------------------
+# Show distribution of SSE
+# ------------------------
+x <- read.csv("kmeans_sse.csv", sep=" ", header=FALSE)
+x <- unlist(x, use.names=FALSE)
+hist(x, main="Frequency of Sum of Mean Squared\n Errors in 100 k means trials", xlab="Sum of Mean Squared Errors", breaks=100)
+mu <- mean(x)
+variance <- var(x)
+print(mu)
+print(variance)
+print(IQR(x))
+
+x <- read.csv("kpp_sse.csv", sep=" ", header=FALSE)
+x <- unlist(x, use.names=FALSE)
+hist(x, main="Frequency of Sum of Mean Squared\n Errors in 100 k++ trials", xlab="Sum of Mean Squared Errors", breaks=100)
+mu <- mean(x)
+variance <- var(x)
+print(mu)
+print(variance)
+print(IQR(x))
+\end{minted}
