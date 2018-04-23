@@ -1,5 +1,4 @@
 require(jsonlite)
-require(plotly)
 
 ##############################################
 # get.polo.url()
@@ -71,6 +70,8 @@ pacf(diff(diff(train)), lag.max=50, main="PACF of diff(diff(train))")
 # Model and Prediction
 # --------------------
 ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=41))
+print(AIC(ARIMA))
+print(BIC(ARIMA))
 ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
 error <- abs((c(test)-ARIMA.pred$pred))
 error <- ((error/max(error))*(min(log(test))/max(log(test))))+min(log(test))
@@ -79,32 +80,19 @@ lines(x=seq(along=test), log(ARIMA.pred$pred), col="blue", lwd=1)
 plot(log(ts(df2[8])), type='l', main="Log of Bitcoin VWAP with ARIMA prediction", ylab="Log of VWAP")
 lines(x=seq(length(series)+1, length(series)+length(ARIMA.pred$pred)), y=log(ARIMA.pred$pred), col="red")
 
-# long
-#errors <- array(dim=c(4,30))
-#for(i in 1:4) {
-#  df <- fromJSON(get.polo.url(start=i,end=i))
-#  pred_df <- fromJSON(get.polo.url(start=i,end=i,train=F))
-#  train <- ts(df[8])
-#  test <- ts(pred_df[8])
-#  for(j in 9:38) {
-#    ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=j))
-#    ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
-#    error <- sum(abs(c(test)-ARIMA.pred$pred))
-#    errors[i,(j-21)] <- error
-#  }
-#}
-
-# install.packages('rnn')
+# ------------------------
+# Recurrent Neural Network
+# ------------------------
 library(rnn)
+df <- fromJSON(get.polo.url(start=1, end=1))
 X = matrix(1:680, nrow=34)
-#TRAIN_VOLUME = df[6]
 Y = matrix(df[1:680,8], nrow=34)
 
-set.seed(312)
-
+# Conform to interval [0,1]
 X <- (X-min(X)) / (max(X)-min(X))
 Y <- (Y-min(Y)) / (max(Y)-min(Y))
 
+# Transpose
 X <- t(X)
 Y <- t(Y)
 
@@ -113,12 +101,11 @@ test <- 16:20
 
 model <- trainr(Y = Y[train,],
                 X = X[train,],
-                learningrate = 0.025,
-                hidden_dim = c(680, 680),
-                numepochs = 3000)
+                learningrate = 0.05,
+                hidden_dim = c(16,8),
+                numepochs = 1000)
 
 Y.pred <- predictr(model, X)
 
 plot(as.vector(t(Y)), col="red", type="l", main="Actual vs Predicted", ylab="Y, Y.pred")
 lines(as.vector(t(Y.pred)), type="l", col="blue")
-legend("topright", c("Predicted", "Real"), col=c("blue","red"), lty=c(1,1), lwd=c(1,1))
