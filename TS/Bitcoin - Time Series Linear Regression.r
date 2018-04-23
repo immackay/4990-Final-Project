@@ -64,11 +64,13 @@ abline(h=0)
 # --------------
 acf(diff(train), lag.max=50, main="ACF of diff(train)")
 pacf(diff(train), lag.max=50, main="PACF of diff(train)")
+acf(diff(diff(train)), lag.max=50, main="ACF of diff(diff(train))")
+pacf(diff(diff(train)), lag.max=50, main="PACF of diff(diff(train))")
 
 # --------------------
 # Model and Prediction
 # --------------------
-ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,0), period=41))
+ARIMA <- arima(train, order=c(1,1,0), seasonal=list(order=c(1,1,1), period=41))
 ARIMA.pred <- predict(ARIMA, n.ahead=PREDICTION_LENGTH)
 error <- abs((c(test)-ARIMA.pred$pred))
 error <- ((error/max(error))*(min(log(test))/max(log(test))))+min(log(test))
@@ -93,10 +95,14 @@ lines(x=seq(length(series)+1, length(series)+length(ARIMA.pred$pred)), y=log(ARI
 #}
 
 # install.packages('rnn')
-#library(rnn)
-#TRAIN_TIME = df[1]
+library(rnn)
+X = matrix(1:683)
 #TRAIN_VOLUME = df[6]
-#TRAIN_PRICE = df[4]
-#TEST_TIME = pred_df[1]
+Y = matrix(df[[8]])
+TEST_TIME = 684:684+PREDICTION_LENGTH
 #TEST_VOLUME = pred_df[6]
-#TEST_PRICE = pred_df[4]
+TEST_PRICE = pred_df[[8]]
+
+set.seed(312)
+
+
